@@ -1,15 +1,19 @@
 <?php
+require_once 'DBConnection.php';
+
 // Verificamos si se ha enviado el formulario
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Conexión a la base de datos (suponiendo que ya tienes el archivo de configuración incluido)
-    include 'config.php';
-
     // Recibimos los datos del formulario
     $username = $_POST['username'];
     $password = $_POST['password'];
 
     // Hash de la contraseña
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+    // Obtenemos la conexión PDO
+    $config = require 'config.php';
+    $db = DBConnection::getInstance($config);
+    $pdo = $db->getConnection();
 
     // Query para insertar el nuevo usuario en la base de datos
     $sql = "INSERT INTO usuarios (username, password) VALUES (:username, :password)";
