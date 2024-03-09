@@ -1,32 +1,34 @@
 <?php
-// Verificamos si se ha enviado el formulario
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Conexión a la base de datos (suponiendo que ya tienes el archivo de configuración incluido)
-    include 'config.php';
+require_once 'database.php';
+include 'navbar.php'; 
 
-    // Recibimos los datos del formulario
+session_start();
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Query para obtener el hash de la contraseña del usuario
-    $sql = "SELECT id, username, password FROM usuarios WHERE username = :username";
-    $stmt = $pdo->prepare($sql);
+    // Verificar las credenciales en la base de datos
+    $config = require 'config.php';
+    $db = db\DB_PDO::getInstance($config);
+    $pdo = $db->getConnection();
+
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
     $stmt->bindParam(':username', $username);
     $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $user = $stmt->fetch();
 
-    // Verificamos si el usuario existe y la contraseña es correcta
     if ($user && password_verify($password, $user['password'])) {
-        // Iniciamos la sesión y guardamos el ID del usuario
-        session_start();
+        // Las credenciales son válidas, iniciar sesión
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
 
-        // Redirigimos al usuario a la página principal o al panel de administración
+        // Redirigir al usuario a la página principal del panel de administración
         header('Location: index.php');
         exit();
     } else {
-        echo "Nombre de usuario o contraseña incorrectos.";
+        // Credenciales inválidas, mostrar mensaje de error
+        $error_message = "Username or password not working. You may want to sign up :)";
     }
 }
 ?>
@@ -36,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión</title>
+    <title>Iniciar sesión</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -44,17 +46,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <h2 class="mb-3">Iniciar Sesión</h2>
+                <h2 class="mb-3">Login</h2>
+                <?php if(isset($error_message)): ?>
+                <div class="alert alert-danger" role="alert">
+                    <?php echo $error_message; ?>
+                </div>
+                <?php endif; ?>
                 <form action="login.php" method="POST">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Nombre de Usuario:</label>
+                        <label for="username" class="form-label">Username:</label>
                         <input type="text" class="form-control" id="username" name="username" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña:</label>
+                        <label for="password" class="form-label">Password:</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                    <button type="submit" class="btn btn-primary">Login</button>
                 </form>
             </div>
         </div>

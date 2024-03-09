@@ -1,5 +1,6 @@
 <?php
-require_once 'DBConnection.php';
+require_once 'database.php'; // 
+include 'navbar.php';
 
 // Verificamos si se ha enviado el formulario
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -7,27 +8,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Hash de la contraseña
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-    // Obtenemos la conexión PDO
+    // Verificar si el correo electrónico ya está registrado
     $config = require 'config.php';
-    $db = DBConnection::getInstance($config);
+    $db = db\DB_PDO::getInstance($config);
     $pdo = $db->getConnection();
 
-    // Query para insertar el nuevo usuario en la base de datos
-    $sql = "INSERT INTO usuarios (username, password) VALUES (:username, :password)";
-    $stmt = $pdo->prepare($sql);
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = :username");
     $stmt->bindParam(':username', $username);
-    $stmt->bindParam(':password', $hashed_password);
+    $stmt->execute();
+    $existingUser = $stmt->fetch();
 
-    // Ejecutamos la consulta
-    if ($stmt->execute()) {
-        // Redirigimos al usuario a la página de inicio de sesión
-        header('Location: login.php');
-        exit();
+    if ($existingUser) {
+        // El correo electrónico ya está registrado
+        echo "The mail is already registered!.";
     } else {
-        echo "Error al registrar el usuario.";
+        // Hash de la contraseña
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        // Query para insertar el nuevo usuario en la base de datos
+        $sql = "INSERT INTO users (username, password) VALUES (:username, :password)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':password', $hashed_password);
+
+        // Ejecutamos la consulta
+        if ($stmt->execute()) {
+            // Redirigimos al usuario a la página de inicio de sesión
+            header('Location: login.php');
+            exit();
+        } else {
+            echo "Error al registrar el usuario.";
+        }
     }
 }
 ?>
@@ -45,17 +56,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <h2 class="mb-3">Registro de Usuario</h2>
+                <h2 class="mb-3">Register</h2>
                 <form action="register.php" method="POST">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Nombre de Usuario:</label>
+                        <label for="username" class="form-label">Username:</label>
                         <input type="text" class="form-control" id="username" name="username" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña:</label>
+                        <label for="password" class="form-label">Password:</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Registrarse</button>
+                    <button type="submit" class="btn btn-primary">Register</button>
                 </form>
             </div>
         </div>
