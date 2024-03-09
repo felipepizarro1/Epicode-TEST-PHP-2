@@ -35,5 +35,29 @@
             public function getConnection(){
                 return $this->conn;
             }
+//CRUD OPERATIONS:
+            public function getAllUsers() {
+                $sql = "SELECT * FROM users";
+                $stmt = $this->conn->query($sql);
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            public function updateUser($id, $username, $password) {
+                $sql = "UPDATE users SET username = :username, password = :password WHERE id = :id";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->bindParam(':id', $id);
+                $stmt->bindParam(':username', $username);
+                $stmt->bindParam(':password', $password);
+                return $stmt->execute();
+            }
+            
+            public function deleteUser($id) {
+                $sql = "DELETE FROM users WHERE id = :id";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->bindParam(':id', $id);
+                return $stmt->execute();
+            }
+
+
         }
     }

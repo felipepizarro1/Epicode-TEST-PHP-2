@@ -36,21 +36,59 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Aquí puedes incluir la lógica para la gestión de datos sensibles y otros elementos del panel de administración
+//CRUD
+$users = $db->getAllUsers();
+
+if (isset($_POST['delete_user_id'])) {
+    $user_id = $_POST['delete_user_id'];
+    $db->deleteUser($user_id);
+    header('Location: index.php');
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Encabezado, título y enlaces a estilos -->
-</head>
+     <!-- Bootstrap CSS -->
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 <body>
-    <!-- Barra de navegación, opciones de usuario, panel de administración, etc. -->
-    <h1>Benvenuto <?php echo $_SESSION['username']; ?>!</h1>
-    <p>Admin Panel</p>
-    <p>Aquí puedes agregar la funcionalidad relacionada con la gestión de datos sensibles y otras características de tu aplicación.</p>
-
-    <!--insertar PANEL -->
-    <a href="logout.php">Logout</a>
+    <div class="container mt-5">
+        <h1>Benvenut@ <?php echo $_SESSION['username']; ?>!</h1>
+        <p>Admin Panel</p>
+        <p>You can manage all users data here:</p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usernames</th>
+                    <th>Passwords</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($users as $user): ?>
+                    <tr>
+                    <td><?php echo $user['id']; ?></td>
+                    <td><?php echo $user['username']; ?></td>
+                    <td><?php echo $user['password']; ?></td>
+                    <td class="d-flex gap-2">
+                        <!-- <form action="index.php" method="post">
+                            <input type="hidden" name="edit_user_id" value="<?php echo $user['id']; ?>">
+                            <button type="submit" class="btn btn-primary">Edit</button>
+                        </form> -->
+                        <form action="index.php" method="post">
+                            <input type="hidden" name="delete_user_id" value="<?php echo $user['id']; ?>">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <a href="logout.php" class="btn btn-primary">Logout</a>
+    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
